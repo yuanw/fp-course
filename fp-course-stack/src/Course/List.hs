@@ -250,7 +250,9 @@ seqOptional ls = if g ls then (Full . flatMap f) ls else Empty
         g (Empty :. ls)  = False
         g (Full a :. ls) = g ls
 
-
+-- seqOptional = foldLeft f (Full Nil)
+--   where f :: Optional (List a) -> Optional a -> Optional (List a)
+--         f = twiceOptional (P.flip (:.))
 
 
 
@@ -347,8 +349,8 @@ produce f x = x :. produce f (f x)
 notReverse ::
   List a
   -> List a
-notReverse =
-  error "todo: Is it even possible?"
+notReverse Nil          = Nil
+notReverse (head :. ls) = undefined
 
 ---- End of list exercises
 
