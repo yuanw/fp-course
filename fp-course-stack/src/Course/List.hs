@@ -1,7 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleInstances #-}
 
 -- + Complete the 10 exercises below by filling out the function bodies.
 --   Replace the function bodies (error "todo: ...") with an appropriate
@@ -14,12 +14,12 @@
 module Course.List where
 
 import qualified Control.Applicative as A
-import qualified Control.Monad as M
-import Course.Core
-import Course.Optional
-import qualified System.Environment as E
-import qualified Prelude as P
-import qualified Numeric as N
+import qualified Control.Monad       as M
+import           Course.Core
+import           Course.Optional
+import qualified Numeric             as N
+import qualified Prelude             as P
+import qualified System.Environment  as E
 
 
 -- $setup
@@ -75,7 +75,7 @@ headOr ::
   a
   -> List a
   -> a
-headOr e Nil = e
+headOr e Nil             = e
 headOr e (head :. list ) = head
 
 -- | The product of the elements of a list.
@@ -116,7 +116,7 @@ sum = foldRight (+) 0
 length ::
   List a
   -> Int
-length Nil = 0
+length Nil            = 0
 length (head :. list) = length list + 1
 
 -- | Map the given function on each element of the list.
@@ -131,7 +131,7 @@ map ::
   (a -> b)
   -> List a
   -> List b
-map _ Nil = Nil
+map _ Nil            = Nil
 map f (head :. list) = f head :. map f list
 
 -- | Return elements satisfying the given predicate.
@@ -186,7 +186,7 @@ infixr 5 ++
 flatten ::
   List (List a)
   -> List a
-flatten Nil = Nil
+flatten Nil            = Nil
 flatten (head :. list) = head ++ flatten list
 
 -- | Map a function then flatten to a list.
@@ -240,10 +240,18 @@ flattenAgain = flatMap id
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-seqOptional = Full . flatMap f
+seqOptional ls = if g ls then (Full . flatMap f) ls else Empty
   where f :: Optional a -> List a
-        f Empty = Nil
-        f (Full a)     = a :. Nil
+        f Empty    = Nil
+        f (Full a) = a :. Nil
+
+        g :: List (Optional a) -> Bool
+        g Nil            = True
+        g (Empty :. ls)  = False
+        g (Full a :. ls) = g ls
+
+
+
 
 
 -- | Find the first element in the list matching the predicate.
@@ -285,8 +293,10 @@ find f = headOr Empty . map Full . filter f
 lengthGT4 ::
   List a
   -> Bool
-lengthGT4 =
-  error "todo: Course.List#lengthGT4"
+lengthGT4 = f 0
+  where f :: Int -> List a -> Bool
+        f count Nil          = count > 4
+        f count (head :. ls) = count > 4 P.|| f (count + 1) ls
 
 -- | Reverse a list.
 --
@@ -302,8 +312,14 @@ lengthGT4 =
 reverse ::
   List a
   -> List a
-reverse =
-  error "todo: Course.List#reverse"
+--reverse Nil          = Nil
+--reverse (head :. ls) = reverse ls ++ (head :. Nil)
+-- reverse l = rev l Nil
+--   where
+--     rev :: List a -> List a -> List a
+--     rev Nil a       = a
+--     rev (x :. xs) a = rev xs (x :. a)
+reverse = foldLeft (P.flip (:.)) Nil
 
 -- | Produce an infinite `List` that seeds with the given value at its head,
 -- then runs the given function for subsequent elements
@@ -472,7 +488,7 @@ unfoldr ::
 unfoldr f b  =
   case f b of
     Full (a, z) -> a :. unfoldr f z
-    Empty -> Nil
+    Empty       -> Nil
 
 lines ::
   Chars
@@ -507,7 +523,7 @@ listOptional _ Nil =
 listOptional f (h:.t) =
   let r = listOptional f t
   in case f h of
-       Empty -> r
+       Empty  -> r
        Full q -> q :. r
 
 any ::
@@ -618,7 +634,7 @@ reads ::
   -> Optional (a, Chars)
 reads s =
   case P.reads (hlist s) of
-    [] -> Empty
+    []         -> Empty
     ((a, q):_) -> Full (a, listh q)
 
 read ::
@@ -634,7 +650,7 @@ readHexs ::
   -> Optional (a, Chars)
 readHexs s =
   case N.readHex (hlist s) of
-    [] -> Empty
+    []         -> Empty
     ((a, q):_) -> Full (a, listh q)
 
 readHex ::
@@ -650,7 +666,7 @@ readFloats ::
   -> Optional (a, Chars)
 readFloats s =
   case N.readSigned N.readFloat (hlist s) of
-    [] -> Empty
+    []         -> Empty
     ((a, q):_) -> Full (a, listh q)
 
 readFloat ::
