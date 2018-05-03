@@ -96,7 +96,7 @@ instance Functor ((->) t) where
   a
   -> f b
   -> f a
-(<$) a context = undefined
+(<$) a context = g a <$> context
   where g :: a -> c -> a
         g a x = a
 
