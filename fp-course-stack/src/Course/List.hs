@@ -236,6 +236,7 @@ flattenAgain = flatMap id
 --
 -- >>> seqOptional (Empty :. map Full infinity)
 -- Empty
+-- this version does not handle infinity list
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
