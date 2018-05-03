@@ -1,14 +1,14 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE InstanceSigs        #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
 
 module Course.Functor where
 
-import Course.Core
-import Course.ExactlyOne
-import Course.Optional
-import Course.List
-import qualified Prelude as P(fmap)
+import           Course.Core
+import           Course.ExactlyOne
+import           Course.List
+import           Course.Optional
+import qualified Prelude           as P (fmap)
 
 -- | All instances of the `Functor` type-class must satisfy two laws. These laws
 -- are not checked by the compiler. These laws are given as:
@@ -41,8 +41,8 @@ instance Functor ExactlyOne where
     (a -> b)
     -> ExactlyOne a
     -> ExactlyOne b
-  (<$>) =
-    error "todo: Course.Functor (<$>)#instance ExactlyOne"
+  (<$>) f (ExactlyOne a) = ExactlyOne (f a)
+
 
 -- | Maps a function on the List functor.
 --
@@ -56,8 +56,7 @@ instance Functor List where
     (a -> b)
     -> List a
     -> List b
-  (<$>) =
-    error "todo: Course.Functor (<$>)#instance List"
+  (<$>)  = map
 
 -- | Maps a function on the Optional functor.
 --
@@ -71,8 +70,7 @@ instance Functor Optional where
     (a -> b)
     -> Optional a
     -> Optional b
-  (<$>) =
-    error "todo: Course.Functor (<$>)#instance Optional"
+  (<$>) = mapOptional
 
 -- | Maps a function on the reader ((->) t) functor.
 --
@@ -83,8 +81,7 @@ instance Functor ((->) t) where
     (a -> b)
     -> ((->) t a)
     -> ((->) t b)
-  (<$>) =
-    error "todo: Course.Functor (<$>)#((->) t)"
+  (<$>) = (.)
 
 -- | Anonymous map. Maps a constant value on a functor.
 --
@@ -99,8 +96,9 @@ instance Functor ((->) t) where
   a
   -> f b
   -> f a
-(<$) =
-  error "todo: Course.Functor#(<$)"
+(<$) a context = undefined
+  where g :: a -> c -> a
+        g a x = a
 
 -- | Anonymous map producing unit value.
 --
@@ -119,8 +117,7 @@ void ::
   Functor f =>
   f a
   -> f ()
-void =
-  error "todo: Course.Functor#void"
+void = (<$>) (\x -> ())
 
 -----------------------
 -- SUPPORT LIBRARIES --
