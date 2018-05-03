@@ -240,20 +240,25 @@ flattenAgain = flatMap id
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-seqOptional ls = if g ls then (Full . flatMap f) ls else Empty
-  where f :: Optional a -> List a
-        f Empty    = Nil
-        f (Full a) = a :. Nil
+-- seqOptional ls = if g ls then (Full . flatMap f) ls else Empty
+--   where f :: Optional a -> List a
+--         f Empty    = Nil
+--         f (Full a) = a :. Nil
 
-        g :: List (Optional a) -> Bool
-        g Nil            = True
-        g (Empty :. ls)  = False
-        g (Full a :. ls) = g ls
+--         g :: List (Optional a) -> Bool
+--         g Nil            = True
+--         g (Empty :. ls)  = False
+--         g (Full a :. ls) = g ls
 
 -- seqOptional = foldLeft f (Full Nil)
 --   where f :: Optional (List a) -> Optional a -> Optional (List a)
 --         f = twiceOptional (P.flip (:.))
 
+seqOptional Nil = Full Nil
+seqOptional (h :. t) =
+  bindOptional (\v ->
+    mapOptional (\w -> v :. w)
+      (seqOptional t)) h
 
 
 -- | Find the first element in the list matching the predicate.
