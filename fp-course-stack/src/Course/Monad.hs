@@ -148,7 +148,8 @@ join mma = id =<< mma
   f a
   -> (a -> f b)
   -> f b
-(>>=) = flip (=<<)
+--(>>=) = flip (=<<)
+(>>=) ma f = join $ f <$> ma
 
 infixl 1 >>=
 
