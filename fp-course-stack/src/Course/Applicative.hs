@@ -365,9 +365,8 @@ filtering ::
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
-
+filtering _ Nil = pure Nil
+filtering f (h :. t) = lift2 (\x y -> if x then h :. y else y) (f h) (filtering f t)
 -----------------------
 -- SUPPORT LIBRARIES --
 -----------------------
