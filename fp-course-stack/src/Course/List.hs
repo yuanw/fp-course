@@ -260,6 +260,8 @@ seqOptional (h :. t) =
     mapOptional (\w -> v :. w)
       (seqOptional t)) h
 
+--seqOptional Nil = Full Nil
+--seqOptional (h :. t) = applyOptional (seqOptional t) h
 
 -- | Find the first element in the list matching the predicate.
 --
