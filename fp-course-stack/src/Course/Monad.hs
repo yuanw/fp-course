@@ -130,6 +130,13 @@ join ::
   -> f a
 join mma = id =<< mma
 
+-- doubleJoin ::
+--   Monad f =>
+--   f (f (f a))
+--   -> f a
+
+-- doubleJoin mmma = join $ id =<< mmma
+
 -- | Implement a flipped version of @(=<<)@, however, use only
 -- @join@ and @(<$>)@.
 -- Pronounced, bind flipped.
