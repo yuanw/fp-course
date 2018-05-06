@@ -38,8 +38,7 @@ exec ::
   State s a
   -> s
   -> s
-exec =
-  error "todo: Course.State#exec"
+exec (State f) = snd . f
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
@@ -48,8 +47,7 @@ eval ::
   State s a
   -> s
   -> a
-eval =
-  error "todo: Course.State#eval"
+eval (State f) = fst . f
 
 -- | A `State` where the state also distributes into the produced value.
 --
@@ -57,8 +55,7 @@ eval =
 -- (0,0)
 get ::
   State s s
-get =
-  error "todo: Course.State#get"
+get = State (\x -> (x, x))
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -67,8 +64,7 @@ get =
 put ::
   s
   -> State s ()
-put =
-  error "todo: Course.State#put"
+put s = State (\x -> ((), s))
 
 -- | Implement the `Functor` instance for `State s`.
 --
@@ -79,8 +75,9 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) =
-    error "todo: Course.State#(<$>)"
+  (<$>) f (State g) = State (\s -> (h f) $ (g s))
+    where h ::  (a -> b) -> (a, s) -> (b, s)
+          h f (a, b) = (f a,  b)
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -97,14 +94,22 @@ instance Applicative (State s) where
   pure ::
     a
     -> State s a
-  pure =
-    error "todo: Course.State pure#instance (State s)"
+  pure a = State (\s -> (a, s))
   (<*>) ::
     State s (a -> b)
     -> State s a
-    -> State s b 
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+    -> State s b
+  -- wrong order
+  -- (<*>) sf sa = State (g sf . runState sa)
+  --   where g :: State s (a -> b) -> (a, s) ->  (b, s)
+  --         g sf (a, s) =
+  --             let (c ,d) = runState sf s
+  --             in (c a, d)
+  (<*>) sf sa = State (g sa . runState sf)
+    where g :: State s a -> (a -> b, s) -> (b, s)
+          g sa (f, s) =
+              let (c ,d) = runState sa s
+              in (f c, d)
 
 -- | Implement the `Bind` instance for `State s`.
 --
@@ -118,8 +123,9 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  (=<<) =
-    error "todo: Course.State (=<<)#instance (State s)"
+  (=<<) mab ma = State (g mab  . runState ma)
+    where g :: (a -> State s b) -> (a, s) -> (b, s)
+          g mab (a, s) = runState (mab a) s
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
