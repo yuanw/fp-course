@@ -146,8 +146,9 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM =
-  error "todo: Course.State#findM"
+findM mab ls = foldRight (\a, b -> b ?? ((\x -> if x then pure Full a else pure Empty ) =<< mab a )) (pure Empty) ls
+  where g :: Monad f => a -> f (Optional a) -> f (Optional a)
+        g = undefined
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
