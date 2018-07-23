@@ -365,8 +365,8 @@ filtering ::
   -> f (List a)
 -- filtering _ Nil = pure Nil
 -- filtering f (h :. t) = lift3 (\ x y z -> if x then y :. z else z ) (f h) (pure h) (filtering f t)
---filtering f = foldRight (\ a b -> lift3 (\ x y z -> if x then y :. z else z) (f a) (pure a) b) (pure Nil)
-filtering p = foldRight (\a -> lift2 (\b -> if b then (a:.) else id) (p a)) (pure Nil)
+filtering f = foldRight (\ a b -> lift3 (\ x y z -> if x then y :. z else z) (f a) (pure a) b) (pure Nil)
+--filtering p = foldRight (\a -> lift2 (\b -> if b then (a:.) else id) (p a)) (pure Nil)
 -----------------------
 -- SUPPORT LIBRARIES --
 -----------------------
