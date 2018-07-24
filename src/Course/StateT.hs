@@ -67,8 +67,7 @@ instance Monad f => Applicative (StateT s f) where
    StateT s f (a -> b)
     -> StateT s f a
     -> StateT s f b
-  (StateT g) <*> (StateT h) =
-    error "todo: Course.StateT (<*>)#instance (StateT s f)"
+  (StateT g) <*> (StateT h) = StateT (\ s ->  g s >>= (\ (x, s') -> (\ (y, s'') -> (x y, s'') ) <$> (h s')))
 
 -- | Implement the `Monad` instance for @StateT s f@ given a @Monad f@.
 -- Make sure the state value is passed through in `bind`.
@@ -83,8 +82,7 @@ instance Monad f => Monad (StateT s f) where
     (a -> StateT s f b)
     -> StateT s f a
     -> StateT s f b
-  (=<<) =
-    error "todo: Course.StateT (=<<)#instance (StateT s f)"
+  mf =<< (StateT g) = StateT (\ s -> g s >>= (\ (x, s') -> runStateT (mf x) s') )
 
 -- | A `State'` is `StateT` specialised to the `ExactlyOne` functor.
 type State' s a =
@@ -107,8 +105,7 @@ runState' ::
   State' s a
   -> s
   -> (a, s)
-runState' =
-  error "todo: Course.StateT#runState'"
+runState' state = runExactlyOne . runStateT state
 
 -- | Run the `StateT` seeded with `s` and retrieve the resulting state.
 execT ::
@@ -116,16 +113,14 @@ execT ::
   StateT s f a
   -> s
   -> f s
-execT =
-  error "todo: Course.StateT#execT"
+execT state = ((<$>) P.snd)  . runStateT state
 
 -- | Run the `State` seeded with `s` and retrieve the resulting state.
 exec' ::
   State' s a
   -> s
   -> s
-exec' =
-  error "todo: Course.StateT#exec'"
+exec' state  = runExactlyOne . execT state
 
 -- | Run the `StateT` seeded with `s` and retrieve the resulting value.
 evalT ::
@@ -133,16 +128,14 @@ evalT ::
   StateT s f a
   -> s
   -> f a
-evalT =
-  error "todo: Course.StateT#evalT"
+evalT state = ((<$>) P.fst)  . runStateT state
 
 -- | Run the `State'` seeded with `s` and retrieve the resulting value.
 eval' ::
   State' s a
   -> s
   -> a
-eval' =
-  error "todo: Course.StateT#eval'"
+eval' state = runExactlyOne . evalT state
 
 -- | A `StateT` where the state also distributes into the produced value.
 --
@@ -151,8 +144,7 @@ eval' =
 getT ::
   Applicative f =>
   StateT s f s
-getT =
-  error "todo: Course.StateT#getT"
+getT = StateT (\ s -> pure (s, s))
 
 -- | A `StateT` where the resulting state is seeded with the given value.
 --
@@ -165,8 +157,7 @@ putT ::
   Applicative f =>
   s
   -> StateT s f ()
-putT =
-  error "todo: Course.StateT#putT"
+putT inital = StateT (\ _ -> pure ((), inital))
 
 -- | Remove all duplicate elements in a `List`.
 --
@@ -177,8 +168,7 @@ distinct' ::
   (Ord a, Num a) =>
   List a
   -> List a
-distinct' =
-  error "todo: Course.StateT#distinct'"
+distinct' xs = eval' (filtering (\ a -> state' (\ s -> (S.notMember a s, S.insert a s))) xs) S.empty
 
 -- | Remove all duplicate elements in a `List`.
 -- However, if you see a value greater than `100` in the list,
@@ -195,8 +185,9 @@ distinctF ::
   (Ord a, Num a) =>
   List a
   -> Optional (List a)
-distinctF =
-  error "todo: Course.StateT#distinctF"
+distinctF xs = evalT (filtering (\ a -> StateT (\ s -> if a > 100 then Empty else Full (S.notMember a s, S.insert a s))) xs ) S.empty
+
+
 
 -- | An `OptionalT` is a functor of an `Optional` value.
 data OptionalT f a =
