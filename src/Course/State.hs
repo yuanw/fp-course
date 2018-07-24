@@ -198,5 +198,7 @@ helper' item =  State (\s -> (not(S.member item s), S.insert item s))
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy = contains 1. firstRepeat . produce square
+
+square :: Integer -> Integer
+square = toInteger . sum .  map ( join (*) . digitToInt ) . show'
