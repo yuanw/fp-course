@@ -229,8 +229,11 @@ instance Functor f => Functor (OptionalT f) where
 -- >>> runOptionalT $ OptionalT (Full (+1) :. Full (+2) :. Nil) <*> OptionalT (Full 1 :. Empty :. Nil)
 -- [Full 2,Empty,Full 3,Empty]
 instance Monad f => Applicative (OptionalT f) where
-  pure = OptionalT . pure . pure
-  (OptionalT g) <*> (OptionalT h) = OptionalT (lift2 (<*>) g h)
+  pure = OptionalT . pure . Full
+
+  OptionalT g <*> mx = OptionalT $ g >>= (\ o -> case o of
+                                                  Empty -> pure Empty
+                                                  Full f -> runOptionalT (f <$> mx))
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
 --
