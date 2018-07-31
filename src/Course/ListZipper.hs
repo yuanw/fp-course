@@ -395,6 +395,24 @@ repeatAction f times input
   | times == 0 = input
   | otherwise = repeatAction f (times - 1) (f input)
 
+repeatActionOptional :: (a -> Optional a) -> Int -> a -> Optional a
+repeatActionOptional f times input
+    | times < 0 = error ""
+    | times == 0 = Full input
+    | otherwise = case f input of Empty -> Empty
+                                  Full a -> repeatActionOptional f (times - 1) a
+
+repeatActionEither :: (a -> Optional a) -> Int -> Int -> a -> Either Int a
+repeatActionEither f time counter input
+  | time < 0 = error ""
+  | time == 0 = Right input
+  | otherwise = case f input of Empty  -> Left counter
+                                Full a -> repeatActionEither f (time - 1) (counter + 1) a
+
+mapping :: Optional (ListZipper a) -> MaybeListZipper a
+mapping Empty     = IsNotZ
+mapping (Full lz) = IsZ lz
+
 -- | Move the focus left the given number of positions. If the value is negative, move right instead.
 --
 -- >>> moveLeftN 2 (zipper [2,1,0] 3 [4,5,6])
@@ -406,7 +424,10 @@ moveLeftN ::
   Int
   -> ListZipper a
   -> MaybeListZipper a
-moveLeftN num lz = IsZ $ if num >= 0 then repeatAction moveLeftLoop num lz else repeatAction moveRightLoop (abs num) lz
+moveLeftN num lz = if num >= 0 then mapping $ repeatActionOptional (\ lz' -> case moveLeft lz' of IsNotZ -> Empty
+                                                                                                  (IsZ ls) -> Full ls) num lz
+                               else mapping $ repeatActionOptional (\ lz' -> case moveRight lz' of IsNotZ -> Empty
+                                                                                                   (IsZ ls) -> Full ls) (abs num) lz
 
 -- | Move the focus right the given number of positions. If the value is negative, move left instead.
 --
@@ -448,8 +469,10 @@ moveLeftN' ::
   Int
   -> ListZipper a
   -> Either Int (ListZipper a)
-moveLeftN' =
-  error "todo: Course.ListZipper#moveLeftN'"
+moveLeftN' num lz = if num >= 0 then repeatActionEither (\ l -> case moveLeft l of IsNotZ -> Empty
+                                                                                   IsZ l' -> Full l' ) num 0 lz
+                                else repeatActionEither (\ l -> case moveRight l of IsNotZ -> Empty
+                                                                                    IsZ l' -> Full l' ) (abs num) 0 lz
 
 -- | Move the focus right the given number of positions. If the value is negative, move left instead.
 -- If the focus cannot be moved, the given number of times, return the value by which it can be moved instead.
@@ -472,8 +495,7 @@ moveRightN' ::
   Int
   -> ListZipper a
   -> Either Int (ListZipper a)
-moveRightN' =
-  error "todo: Course.ListZipper#moveRightN'"
+moveRightN' = moveLeftN' . negate
 
 -- | Move the focus to the given absolute position in the zipper. Traverse the zipper only to the extent required.
 --
