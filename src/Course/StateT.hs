@@ -301,12 +301,14 @@ log1 l = Logger (l :. Nil)
 --
 -- >>> distinctG $ listh [1,2,3,2,6,106]
 -- Logger ["even number: 2","even number: 2","even number: 6","aborting > 100: 106"] Empty
-distinctG ::
-  (Integral a, Show a) =>
-  List a
-  -> Logger Chars (Optional (List a))
-distinctG =
-  error "todo: Course.StateT#distinctG"
+distinctG :: (Integral a, Show a) => List a -> Logger Chars (Optional (List a))
+distinctG xs = runOptionalT  $ evalT ( filtering helper'' xs) S.empty
+      where helper'' :: (Integral a, Show a) => a -> StateT (S.Set a)  (OptionalT (Logger Chars)) Bool
+            helper'' = (\ a -> StateT (\ s -> if a > 100 then OptionalT $ log1 ("aborting > 100: " ++ (show' a)) Empty
+                                                         else if even a then OptionalT $ log1 ("even number: " ++ show' a) (Full (S.notMember a s, S.insert a s))
+                                                                         else OptionalT $ Logger (Nil) (Full (S.notMember a s, S.insert a s)  )))
+
+
 
 onFull ::
   Applicative f =>

@@ -38,8 +38,10 @@ exec ::
   State s a
   -> s
   -> s
-exec state initial = (\ (_,y) -> y) (runState state initial)
-
+-- exec state = P.snd . runState state
+--exec (State f) = P.snd . f
+-- exec f = (\ (_, y) -> y) . runState f
+exec f v = (\ (_, y) -> y) (runState f v)
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
 -- prop> \(Fun _ f) s -> eval (State f) s == fst (runState (State f) s)
@@ -47,15 +49,15 @@ eval ::
   State s a
   -> s
   -> a
-eval state initial = (\ (x, _) -> x) (runState state initial)
+eval f = P.fst . runState f
 
 -- | A `State` where the state also distributes into the produced value.
 --
 -- >>> runState get 0
 -- (0,0)
-get ::
-  State s s
-get = State (\ x -> (x,x))
+get :: State s s
+--get = State (\ x -> (x,x))
+get = State $ (join (,))
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -75,7 +77,7 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  f <$> (State x) = State (\ s -> let (y, s') = x s in (f y, s'))
+  f <$> State x = State (\ s -> let (y, s') = x s in (f y, s'))
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -153,8 +155,8 @@ firstRepeat ls = eval (findM helper ls) start
   where start :: S.Set a
         start = S.empty
 
-helper :: Ord a => (a -> State (S.Set a) Bool)
-helper item = State (\s -> (S.member item s, S.insert item s))
+        helper :: Ord a => (a -> State (S.Set a) Bool)
+        helper item = State (\s -> (S.member item s, S.insert item s))
 
 
 -- | Remove all duplicate elements in a `List`.
