@@ -110,7 +110,7 @@ toListZ (IsZ z) =
 fromList ::
   List a
   -> MaybeListZipper a
-fromList Nil = IsNotZ
+fromList Nil      = IsNotZ
 fromList (h :. t) = IsZ (ListZipper Nil h t)
 
 -- | Retrieve the `ListZipper` from the `MaybeListZipper` if there is one.
@@ -121,7 +121,7 @@ fromList (h :. t) = IsZ (ListZipper Nil h t)
 toOptional ::
   MaybeListZipper a
   -> Optional (ListZipper a)
-toOptional IsNotZ = Empty
+toOptional IsNotZ  = Empty
 toOptional (IsZ l) = Full l
 
 zipper ::
@@ -319,7 +319,7 @@ moveRightLoop (ListZipper l m Nil) = let (h :. t) = reverse (m :. l) in ListZipp
 moveLeft ::
   ListZipper a
   -> MaybeListZipper a
-moveLeft (ListZipper Nil _ _) = IsNotZ
+moveLeft (ListZipper Nil _ _)      = IsNotZ
 moveLeft (ListZipper (h :. t) m r) = IsZ $ ListZipper t h (m :. r)
 
 -- | Move the zipper one position to the right.
@@ -333,7 +333,7 @@ moveRight ::
   ListZipper a
   -> MaybeListZipper a
 moveRight (ListZipper l m  (h :. t)) = IsZ $ ListZipper (m :.l) h t
-moveRight (ListZipper _ _ Nil) = IsNotZ
+moveRight (ListZipper _ _ Nil)       = IsNotZ
 
 -- | Swap the current focus with the value to the left of focus.
 --
@@ -345,7 +345,7 @@ moveRight (ListZipper _ _ Nil) = IsNotZ
 swapLeft ::
   ListZipper a
   -> MaybeListZipper a
-swapLeft (ListZipper Nil _ _) = IsNotZ
+swapLeft (ListZipper Nil _ _)      = IsNotZ
 swapLeft (ListZipper (h :. t) m r) = IsZ $ ListZipper (m :. t) h r
 
 -- | Swap the current focus with the value to the right of focus.
@@ -358,7 +358,7 @@ swapLeft (ListZipper (h :. t) m r) = IsZ $ ListZipper (m :. t) h r
 swapRight ::
   ListZipper a
   -> MaybeListZipper a
-swapRight (ListZipper _ _ Nil) = IsNotZ
+swapRight (ListZipper _ _ Nil)       = IsNotZ
 swapRight (ListZipper l m  (h :. t)) = IsZ $ ListZipper l h (m :. t)
 
 -- | Drop all values to the left of the focus.
@@ -389,6 +389,9 @@ dropRights ::
   -> ListZipper a
 dropRights (ListZipper l m _) = ListZipper l m Nil
 
+repeatAction :: (a -> a) -> Int -> a -> a
+repeatAction f times input = if times < 0 then error "" else if times == 0 then input else repeatAction f (times - 1) (f input)
+
 -- | Move the focus left the given number of positions. If the value is negative, move right instead.
 --
 -- >>> moveLeftN 2 (zipper [2,1,0] 3 [4,5,6])
@@ -400,8 +403,7 @@ moveLeftN ::
   Int
   -> ListZipper a
   -> MaybeListZipper a
-moveLeftN =
-  error "todo: Course.ListZipper#moveLeftN"
+moveLeftN num lz = IsZ $ if num >= 0 then repeatAction moveLeftLoop num lz else repeatAction moveRightLoop (abs num) lz
 
 -- | Move the focus right the given number of positions. If the value is negative, move left instead.
 --
@@ -414,8 +416,7 @@ moveRightN ::
   Int
   -> ListZipper a
   -> MaybeListZipper a
-moveRightN =
-  error "todo: Course.ListZipper#moveRightN"
+moveRightN = moveLeftN . negate
 
 -- | Move the focus left the given number of positions. If the value is negative, move right instead.
 -- If the focus cannot be moved, the given number of times, return the value by which it can be moved instead.
@@ -681,7 +682,7 @@ instance Traversable ListZipper where
 -- >>> traverse id (IsZ (zipper [Full 1, Full 2, Full 3] (Full 4) [Full 5, Full 6, Full 7]))
 -- Full [1,2,3] >4< [5,6,7]
 instance Traversable MaybeListZipper where
-  traverse _ IsNotZ = pure IsNotZ
+  traverse _ IsNotZ  = pure IsNotZ
   traverse f (IsZ l) = lift1 IsZ (traverse f l)
 
 -----------------------
