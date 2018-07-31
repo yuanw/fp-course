@@ -1,17 +1,17 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Course.ListZipper where
 
-import Course.Core
-import Course.List
-import Course.Optional
-import Course.Functor
-import Course.Applicative
-import Course.Extend
-import Course.Comonad
-import Course.Traversable
-import qualified Prelude as P
+import           Course.Applicative
+import           Course.Comonad
+import           Course.Core
+import           Course.Extend
+import           Course.Functor
+import           Course.List
+import           Course.Optional
+import           Course.Traversable
+import qualified Prelude            as P
 
 -- $setup
 -- >>> import Test.QuickCheck
@@ -64,16 +64,15 @@ data MaybeListZipper a =
 -- >>> (+1) <$> (zipper [3,2,1] 4 [5,6,7])
 -- [4,3,2] >5< [6,7,8]
 instance Functor ListZipper where
-  (<$>) =
-    error "todo: Course.ListZipper (<$>)#instance ListZipper"
+  f <$> (ListZipper l m r) = ListZipper (f <$> l) (f m) (f <$> r)
 
 -- | Implement the `Functor` instance for `MaybeListZipper`.
 --
 -- >>> (+1) <$> (IsZ (zipper [3,2,1] 4 [5,6,7]))
 -- [4,3,2] >5< [6,7,8]
 instance Functor MaybeListZipper where
-  (<$>) =
-    error "todo: Course.ListZipper (<$>)#instance MaybeListZipper"
+  _ <$> IsNotZ = IsNotZ
+  f <$> IsZ l = IsZ (f <$> l)
 
 -- | Convert the given zipper back to a list.
 --
@@ -88,8 +87,7 @@ instance Functor MaybeListZipper where
 toList ::
   ListZipper a
   -> List a
-toList =
-  error "todo: Course.ListZipper#toList"
+toList (ListZipper l m r) = reverse l ++ (m :. Nil) ++ r
 
 -- | Convert the given (maybe) zipper back to a list.
 toListZ ::
@@ -264,7 +262,7 @@ findLeft ::
   -> MaybeListZipper a
 findLeft =
   error "todo: Course.ListZipper#findLeft"
-    
+
 -- | Seek to the right for a location matching a predicate, starting from the
 -- current one.
 --
@@ -708,4 +706,4 @@ instance Show a => Show (ListZipper a) where
 
 instance Show a => Show (MaybeListZipper a) where
   show (IsZ z) = show z
-  show IsNotZ = "><"
+  show IsNotZ  = "><"
