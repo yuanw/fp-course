@@ -390,7 +390,10 @@ dropRights ::
 dropRights (ListZipper l m _) = ListZipper l m Nil
 
 repeatAction :: (a -> a) -> Int -> a -> a
-repeatAction f times input = if times < 0 then error "" else if times == 0 then input else repeatAction f (times - 1) (f input)
+repeatAction f times input
+  | times < 0 = error ""
+  | times == 0 = input
+  | otherwise = repeatAction f (times - 1) (f input)
 
 -- | Move the focus left the given number of positions. If the value is negative, move right instead.
 --
