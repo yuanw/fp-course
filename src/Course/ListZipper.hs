@@ -373,8 +373,7 @@ swapRight (ListZipper l m  (h :. t)) = IsZ $ ListZipper l h (m :. t)
 dropLefts ::
   ListZipper a
   -> ListZipper a
-dropLefts =
-  error "todo: Course.ListZipper#dropLefts"
+dropLefts (ListZipper _ m r) = ListZipper Nil m r
 
 -- | Drop all values to the right of the focus.
 --
@@ -388,8 +387,7 @@ dropLefts =
 dropRights ::
   ListZipper a
   -> ListZipper a
-dropRights =
-  error "todo: Course.ListZipper#dropRights"
+dropRights (ListZipper l m _) = ListZipper l m Nil
 
 -- | Move the focus left the given number of positions. If the value is negative, move right instead.
 --
@@ -600,11 +598,9 @@ insertPushRight =
 -- [5,12] >8< [15,24,12]
 instance Applicative ListZipper where
 -- /Tip:/ Use @List#repeat@.
-  pure =
-    error "todo: Course.ListZipper pure#instance ListZipper"
+  pure a = ListZipper (repeat a) a (repeat a)
 -- /Tip:/ Use `zipWith`
-  (<*>) =
-    error "todo: Course.ListZipper (<*>)#instance ListZipper"
+  (ListZipper fl fm fr)  <*> (ListZipper l m r) = ListZipper (zipWith (\ x y -> x y) fl l ) (fm m)  (zipWith (\ x y -> x y) fr r )
 
 -- | Implement the `Applicative` instance for `MaybeListZipper`.
 --
@@ -627,8 +623,7 @@ instance Applicative ListZipper where
 -- >>> IsNotZ <*> IsNotZ
 -- ><
 instance Applicative MaybeListZipper where
-  pure =
-    error "todo: Course.ListZipper pure#instance MaybeListZipper"
+  pure = IsZ . pure
   (<*>) =
     error "todo: Course.ListZipper (<*>)#instance MaybeListZipper"
 
@@ -662,8 +657,7 @@ instance Extend MaybeListZipper where
 -- >>> copure (zipper [2,1] 3 [4,5])
 -- 3
 instance Comonad ListZipper where
-  copure =
-    error "todo: Course.ListZipper copure#instance ListZipper"
+  copure (ListZipper _ m _) = m
 
 -- | Implement the `Traversable` instance for `ListZipper`.
 -- This implementation traverses a zipper while running some `Applicative` effect through the zipper.
@@ -675,8 +669,7 @@ instance Comonad ListZipper where
 -- >>> traverse id (zipper [Full 1, Full 2, Full 3] (Full 4) [Empty, Full 6, Full 7])
 -- Empty
 instance Traversable ListZipper where
-  traverse =
-    error "todo: Course.ListZipper traverse#instance ListZipper"
+  traverse f (ListZipper l m r) = lift3 ListZipper (traverse f l) (f m) (traverse f r)
 
 -- | Implement the `Traversable` instance for `MaybeListZipper`.
 --
@@ -688,8 +681,8 @@ instance Traversable ListZipper where
 -- >>> traverse id (IsZ (zipper [Full 1, Full 2, Full 3] (Full 4) [Full 5, Full 6, Full 7]))
 -- Full [1,2,3] >4< [5,6,7]
 instance Traversable MaybeListZipper where
-  traverse =
-    error "todo: Course.ListZipper traverse#instance MaybeListZipper"
+  traverse _ IsNotZ = pure IsNotZ
+  traverse f (IsZ l) = lift1 IsZ (traverse f l)
 
 -----------------------
 -- SUPPORT LIBRARIES --
