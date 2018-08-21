@@ -250,7 +250,7 @@ list p = list1 p ||| pure Nil
 -- >>> isErrorResult (parse (list1 (character *> valueParser 'v')) "")
 -- True
 list1 :: Parser a -> Parser (List a)
-list1 p = p >>= (\ input -> pure (input :.) <*> P (\ input2 -> parse (list p) input2))
+list1 p = p >>= (\ input -> pure (input :.) <*> P (parse (list p)))
 
 -- | Return a parser that produces a character but fails if
 --
@@ -268,8 +268,7 @@ list1 p = p >>= (\ input -> pure (input :.) <*> P (\ input2 -> parse (list p) in
 satisfy ::
   (Char -> Bool)
   -> Parser Char
-satisfy =
-  error "todo: Course.Parser#satisfy"
+satisfy pred = (\ c -> if pred c then pure c else unexpectedCharParser c) =<< character
 
 -- | Return a parser that produces the given character but fails if
 --
@@ -280,8 +279,7 @@ satisfy =
 -- /Tip:/ Use the @satisfy@ function.
 is ::
   Char -> Parser Char
-is =
-  error "todo: Course.Parser#is"
+is c = satisfy (c ==)
 
 -- | Return a parser that produces a character between '0' and '9' but fails if
 --
@@ -292,8 +290,7 @@ is =
 -- /Tip:/ Use the @satisfy@ and @Data.Char#isDigit@ functions.
 digit ::
   Parser Char
-digit =
-  error "todo: Course.Parser#digit"
+digit = satisfy isDigit
 
 --
 -- | Return a parser that produces a space character but fails if
