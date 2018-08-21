@@ -650,8 +650,10 @@ instance Applicative ListZipper where
 -- ><
 instance Applicative MaybeListZipper where
   pure = IsZ . pure
-  (<*>) =
-    error "todo: Course.ListZipper (<*>)#instance MaybeListZipper"
+  IsNotZ <*> _ = IsNotZ
+  _ <*> IsNotZ = IsNotZ
+  (IsZ f) <*> (IsZ l) = IsZ (f <*> l)
+
 
 -- | Implement the `Extend` instance for `ListZipper`.
 -- This implementation "visits" every possible zipper value derivable from a given zipper (i.e. all zippers to the left and right).
