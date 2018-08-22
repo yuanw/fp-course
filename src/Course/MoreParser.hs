@@ -12,6 +12,7 @@ import           Course.Monad
 import           Course.Optional
 import           Course.Parser
 import           Course.Traversable
+import           Data.Char
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -226,8 +227,7 @@ betweenCharTok ::
   -> Char
   -> Parser a
   -> Parser a
-betweenCharTok =
-  error "todo: Course.MoreParser#betweenCharTok"
+betweenCharTok before after = between (is before) (is after)
 
 -- | Write a function that parses 4 hex digits and return the character value.
 --
@@ -246,8 +246,9 @@ betweenCharTok =
 -- True
 hex ::
   Parser Char
-hex =
-  error "todo: Course.MoreParser#hex"
+hex = replicateA 4 (satisfy isHexDigit) >>= (\ chars -> case readHex chars of
+                                                            Empty -> constantParser $ UnexpectedString chars
+                                                            Full a -> valueParser (chr a))
 
 -- | Write a function that parses the character 'u' followed by 4 hex digits and return the character value.
 --
@@ -269,8 +270,7 @@ hex =
 -- True
 hexu ::
   Parser Char
-hexu =
-  error "todo: Course.MoreParser#hexu"
+hexu = is 'u' *> hex
 
 -- | Write a function that produces a non-empty list of values coming off the given parser (which must succeed at least once),
 -- separated by the second given parser.
@@ -292,8 +292,7 @@ sepby1 ::
   Parser a
   -> Parser s
   -> Parser (List a)
-sepby1 =
-  error "todo: Course.MoreParser#sepby1"
+sepby1 x y = (\ c -> pure (c :.) <*> list (y *> x)) =<< x
 
 -- | Write a function that produces a list of values coming off the given parser,
 -- separated by the second given parser.
