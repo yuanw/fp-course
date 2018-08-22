@@ -314,8 +314,7 @@ sepby ::
   Parser a
   -> Parser s
   -> Parser (List a)
-sepby =
-  error "todo: Course.MoreParser#sepby"
+sepby x y = sepby1 x y ||| valueParser Nil
 
 -- | Write a parser that asserts that there is no remaining input.
 --
@@ -324,10 +323,8 @@ sepby =
 --
 -- >>> isErrorResult (parse eof "abc")
 -- True
-eof ::
-  Parser ()
-eof =
-  error "todo: Course.MoreParser#eof"
+eof :: Parser ()
+eof = P (\ input -> if isEmpty input then Result Nil () else UnexpectedString input)
 
 -- | Write a parser that produces a character that satisfies all of the given predicates.
 --
@@ -350,8 +347,7 @@ eof =
 satisfyAll ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAll =
-  error "todo: Course.MoreParser#satisfyAll"
+satisfyAll preds = undefined $ map satisfy preds
 
 -- | Write a parser that produces a character that satisfies any of the given predicates.
 --
