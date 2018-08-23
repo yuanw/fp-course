@@ -347,10 +347,11 @@ eof = P (\ input -> if isEmpty input then Result Nil () else UnexpectedString in
 satisfyAll ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAll preds = P _satisfyAll_
-  where
-    _satisfyAll_ Nil = UnexpectedString Nil
-    _satisfyAll_ (h :. t) = if and $ preds <*> (h:. Nil) then Result t h else UnexpectedChar h
+-- satisfyAll preds = P _satisfyAll_
+--   where
+--     _satisfyAll_ Nil = UnexpectedString Nil
+--     _satisfyAll_ (h :. t) = if and $ preds <*> (h:. Nil) then Result t h else UnexpectedChar h
+satisfyAll preds = satisfy (and . sequence preds)
 
 -- | Write a parser that produces a character that satisfies any of the given predicates.
 --
@@ -370,8 +371,7 @@ satisfyAll preds = P _satisfyAll_
 satisfyAny ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAny =
-  error "todo: Course.MoreParser#satisfyAny"
+satisfyAny preds = satisfy (or . sequence preds)
 
 -- | Write a parser that parses between the two given characters, separated by a comma character ','.
 --
@@ -399,5 +399,4 @@ betweenSepbyComma ::
   -> Char
   -> Parser a
   -> Parser (List a)
-betweenSepbyComma =
-  error "todo: Course.MoreParser#betweenSepbyComma"
+betweenSepbyComma before after p = betweenCharTok before after (sepby p (charTok ','))
