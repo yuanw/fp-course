@@ -347,7 +347,10 @@ eof = P (\ input -> if isEmpty input then Result Nil () else UnexpectedString in
 satisfyAll ::
   List (Char -> Bool)
   -> Parser Char
-satisfyAll preds = undefined $ map satisfy preds
+satisfyAll preds = P _satisfyAll_
+  where
+    _satisfyAll_ Nil = UnexpectedString Nil
+    _satisfyAll_ (h :. t) = if and $ preds <*> (h:. Nil) then Result t h else UnexpectedChar h
 
 -- | Write a parser that produces a character that satisfies any of the given predicates.
 --
